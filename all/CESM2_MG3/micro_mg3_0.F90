@@ -2701,11 +2701,12 @@ subroutine micro_mg_tend ( &
   if (do_graupel) then
      call size_dist_param_basic(mg_graupel_props, dumg, dumng, lamg, mgncol, nlev)
   end if
+  
   !$acc parallel vector_length(VLENS) default(present)
-  !$acc loop gang vector collapse(2) private(qtmp)
-
-  do k=1,nlev
-     do i=1,mgncol
+  !$acc loop gang vector private(qtmp)
+  do i=1,mgncol
+     !$acc loop seq
+     do k=1,nlev  
         if (lamr(i,k).ge.qsmall) then
            qtmp = lamr(i,k)**br
            ! 'final' values of number and mass weighted mean fallspeed for rain (m/s)
