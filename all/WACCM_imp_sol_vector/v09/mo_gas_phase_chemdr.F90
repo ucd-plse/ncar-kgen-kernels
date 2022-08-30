@@ -118,15 +118,15 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
     ! Variables that are read in for disk 
     REAL(KIND=rkind_io) :: extfrc_io(ncol,pver,max(1,extcnt))
     REAL(KIND=rkind_io) :: vmr_io(ncol,pver,gas_pcnst)
-    REAL(KIND=rkind_io) :: reaction_rates_chnks_io(ncol*pver,max(1,rxntot))
-    REAL(KIND=rkind_io) :: het_rates_chnks_io(ncol*pver,max(1,gas_pcnst))
+    REAL(KIND=rkind_io) :: reaction_rates_chnks_io(ncol,pver,max(1,rxntot))
+    REAL(KIND=rkind_io) :: het_rates_chnks_io(ncol,pver,max(1,gas_pcnst))
 
     !-----------------------------------------------------------------------
-    REAL(KIND=rkind_comp) :: extfrc(ncol,pver,max(1,extcnt))
-    REAL(KIND=rkind_comp) :: vmr(ncol,pver,gas_pcnst)
-    REAL(KIND=rkind_comp) :: reaction_rates_chnks(ncol*pver,max(1,rxntot))
+    REAL(KIND=rkind_comp) :: extfrc(DFACT*ncol,pver,max(1,extcnt))
+    REAL(KIND=rkind_comp) :: vmr(DFACT*ncol,pver,gas_pcnst)
+    REAL(KIND=rkind_comp) :: reaction_rates_chnks(DFACT*ncol,pver,max(1,rxntot))
     INTEGER :: chnkpnts
-    REAL(KIND=rkind_comp) :: het_rates_chnks(ncol*pver,max(1,gas_pcnst))
+    REAL(KIND=rkind_comp) :: het_rates_chnks(DFACT*ncol,pver,max(1,gas_pcnst))
 
 
 
@@ -154,11 +154,13 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
     TYPE(check_t) :: check_status
     INTEGER*8 :: kgen_intvar, kgen_start_clock, kgen_stop_clock, kgen_rate_clock
     INTEGER, PARAMETER :: kgen_maxiter = 100
+    !INTEGER, PARAMETER :: kgen_maxiter = 5
     REAL(KIND=kgen_dp) :: kgen_elapsed_time
     real(kind=kgen_dp) :: tolerance
 
     ! mpi
     integer :: iError
+    integer :: i,j,offset
 
     !-----------------------------------------------------------------------      
     !        ... Get chunck latitudes and longitudes
@@ -360,6 +362,11 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
     !
      !!! imp_sol( base_sol, reaction_rates, het_rates, extfrc, delt,  ncol, lchnk, chnkpnts )
     !$kgen callsite imp_sol
+!    REAL(KIND=rkind_io) :: extfrc_io(ncol,pver,max(1,extcnt))
+!    REAL(KIND=rkind_io) :: vmr_io(ncol,pver,gas_pcnst)
+!    REAL(KIND=rkind_io) :: reaction_rates_chnks_io(ncol*pver,max(1,rxntot))
+!    REAL(KIND=rkind_io) :: het_rates_chnks_io(ncol*pver,max(1,gas_pcnst))
+
     
     !local input variables
     READ (UNIT = kgen_unit) kgen_istrue
@@ -367,21 +374,51 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
         READ (UNIT = kgen_unit) kgen_array_sum
         READ (UNIT = kgen_unit) extfrc_io
         CALL kgen_array_sumcheck("extfrc", kgen_array_sum, REAL(SUM(extfrc_io), kgen_dp), .TRUE.)
+        !print *,'ncol: ',ncol
+        !print *,'pver: ',pver
+#if 0
         extfrc = REAL(extfrc_io,kind=rkind_comp)
+#else
+        do i = 1, DFACT
+          offset = (i-1)*ncol
+          do j = 1,ncol
+             extfrc(offset+j,1:pver,1:extcnt) = REAL(extfrc_io(j,1:pver,1:extcnt),kind=rkind_comp)
+          enddo
+        end do
+#endif
     END IF 
     READ (UNIT = kgen_unit) kgen_istrue
     IF (kgen_istrue) THEN
         READ (UNIT = kgen_unit) kgen_array_sum
         READ (UNIT = kgen_unit) vmr_io
         CALL kgen_array_sumcheck("vmr", kgen_array_sum, REAL(SUM(vmr_io), kgen_dp), .TRUE.)
-        vmr = REAL(vmr_io,kind=rkind_comp)
+#if 0
+         vmr = REAL(vmr_io,kind=rkind_comp)
+#else
+        do i = 1, DFACT
+          offset = (i-1)*ncol
+          do j = 1,ncol
+             vmr(offset+j,1:pver,1:gas_pcnst) = REAL(vmr_io(j,1:pver,1:gas_pcnst),kind=rkind_comp)
+          enddo
+        end do
+#endif
     END IF 
     READ (UNIT = kgen_unit) kgen_istrue
     IF (kgen_istrue) THEN
         READ (UNIT = kgen_unit) kgen_array_sum
         READ (UNIT = kgen_unit) reaction_rates_chnks_io
         CALL kgen_array_sumcheck("reaction_rates_chnks", kgen_array_sum, REAL(SUM(reaction_rates_chnks_io), kgen_dp), .TRUE.)
+#if 0
         reaction_rates_chnks = REAL(reaction_rates_chnks_io,kind=rkind_comp)
+#else
+        do i = 1, DFACT
+          offset = (i-1)*ncol
+          do j = 1,ncol
+             reaction_rates_chnks(offset+j,1:pver,1:rxntot) =  &
+                      REAL(reaction_rates_chnks_io(j,1:pver,1:rxntot),kind=rkind_comp)
+          enddo
+        end do
+#endif
     END IF 
     READ (UNIT = kgen_unit) chnkpnts
     READ (UNIT = kgen_unit) kgen_istrue
@@ -389,7 +426,17 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
         READ (UNIT = kgen_unit) kgen_array_sum
         READ (UNIT = kgen_unit) het_rates_chnks_io
         CALL kgen_array_sumcheck("het_rates_chnks", kgen_array_sum, REAL(SUM(het_rates_chnks_io), kgen_dp), .TRUE.)
+#if 0
         het_rates_chnks = REAL(het_rates_chnks_io,kind=rkind_comp)
+#else
+        do i = 1, DFACT
+          offset = (i-1)*ncol
+          do j = 1,ncol
+             het_rates_chnks(offset+j,1:pver,1:gas_pcnst) = & 
+                 REAL(het_rates_chnks_io(j,1:pver,1:gas_pcnst),kind=rkind_comp)
+          enddo
+        end do
+#endif
     END IF 
     
     !extern output variables
@@ -409,7 +456,17 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
 
    if (perturb_flag .eqv. .true.) then
         call kgen_perturb_real(reaction_rates_chnks_io, epsilon(1.0_kgen_dp))
+#if 0
         reaction_rates_chnks = REAL(reaction_rates_chnks_io,kind=rkind_comp)
+#else
+        do i = 1, DFACT
+          offset = (i-1)*ncol
+          do j = 1,ncol
+             reaction_rates_chnks(offset+j,1:pver,1:rxntot) =  &
+                      REAL(reaction_rates_chnks_io(j,1:pver,1:rxntot),kind=rkind_comp)
+          enddo
+        end do
+#endif
    endif
 
    !if (stats_flag .eqv. .true.) then
@@ -523,13 +580,14 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
 #else
     tolerance=1.0e-13
 #endif
-    CALL kgen_init_check(check_status, rank, tolerance=tolerance, verboseLevel=1)
+    CALL kgen_init_check(check_status, rank, tolerance=tolerance, verboseLevel=2)
     if(check_status%rank==0) print *,'tolerance is set at: ',tolerance 
     
     !extern verify variables
     
     !local verify variables
-    CALL kv_gas_phase_chemdr_real__r8_dim3("vmr", check_status, vmr, kgenref_vmr)
+    !CALL kv_gas_phase_chemdr_real__r8_dim3("vmr", check_status, vmr, kgenref_vmr)
+    CALL kv_gas_phase_chemdr_real__r8_dim3("vmr", check_status, vmr(1:ncol,1:pver,1:gas_pcnst),kgenref_vmr)
     if(check_status%rank==0) WRITE (*, *) ""
     IF (check_status%verboseLevel > 0) THEN
         if(check_status%rank==0) then 
@@ -571,7 +629,7 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
     
     !kgen kernel subroutine
     SUBROUTINE kgen_kernel()
-    call imp_sol( vmr, reaction_rates_chnks, het_rates_chnks, extfrc, delt,  ncol, lchnk, chnkpnts )
+    call imp_sol( vmr, reaction_rates_chnks, het_rates_chnks, extfrc, delt,  ncol, lchnk, DFACT*chnkpnts )
     END SUBROUTINE kgen_kernel
     
     !verify state subroutine for kv_gas_phase_chemdr_real__rkind_comp_dim3

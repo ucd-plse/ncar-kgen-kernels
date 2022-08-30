@@ -422,7 +422,9 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
    !endif
     
     !call to kgen kernel
+    !$acc data copyin(reaction_rates_chnks,het_rates_chnks,extfrc) copy(vmr)
     CALL kgen_kernel
+    !$acc end data
 
 
 
@@ -554,11 +556,13 @@ SUBROUTINE gas_phase_chemdr(kgen_unit, kgen_total_time, kgen_isverified, lchnk, 
 #ifdef _MPI
     call MPI_Barrier(MPI_COMM_WORLD, iError)
 #endif
+    !$acc data copyin(reaction_rates_chnks,het_rates_chnks,extfrc) copy(vmr)
     CALL SYSTEM_CLOCK(kgen_start_clock, kgen_rate_clock)
     DO kgen_intvar = 1, kgen_maxiter
         CALL kgen_kernel
     END DO 
     CALL SYSTEM_CLOCK(kgen_stop_clock, kgen_rate_clock)
+    !$acc end data
     kgen_elapsed_time = 1.0e6*(kgen_stop_clock - kgen_start_clock)/REAL(kgen_rate_clock*kgen_maxiter)
     !WRITE (*, *) "imp_sol : Time per call (usec): ", kgen_elapsed_time
     kgen_total_time = kgen_total_time + kgen_elapsed_time

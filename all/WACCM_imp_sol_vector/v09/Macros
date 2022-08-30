@@ -74,10 +74,12 @@ endif
 # ******** NVHPC compiler options *****************
 ifeq ($(COMPILER),nvhpc)
     FC := nvfortran
-    FC_FLAGS += -O3 -Mfree -Ktrap=none -Mautoinline -Minline=reshape -Kieee -Mnofma -D_NOGETPID
+    # FC_FLAGS += -O3 -Mfree -Ktrap=none -Mautoinline -Minline=reshape -Kieee -Mnofma -D_NOGETPID
+    FC_FLAGS += -O3 -Mfree -Ktrap=none -Mautoinline -Minline=reshape -Kieee -D_NOGETPID
     ifeq ($(OPENACC),yes)
       # FC_FLAGS += -acc -gpu=cc70,lineinfo,nofma,autocompare,math_uniform -Minfo=accel
-      FC_FLAGS += -acc -gpu=cc70,lineinfo,nofma,math_uniform -Minfo=accel
+      # FC_FLAGS += -acc -gpu=cc70,lineinfo,nofma,math_uniform -Minfo=accel
+      FC_FLAGS += -acc -gpu=cc70,lineinfo,math_uniform -Minfo=accel
     endif
     LD_FLAGS += $(FC_FLAGS)
 endif

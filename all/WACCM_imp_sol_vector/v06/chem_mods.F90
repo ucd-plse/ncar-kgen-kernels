@@ -44,7 +44,7 @@
       integer :: cls_rxt_cnt(4,5) = 0
       integer :: clsmap(gas_pcnst,5) = 0
       integer :: permute(gas_pcnst,5) = 0
-
+      !$acc declare create(permute,clsmap)
 
 
 
@@ -74,12 +74,14 @@
               READ (UNIT = kgen_unit) kgen_array_sum
               READ (UNIT = kgen_unit) clsmap
               CALL kgen_array_sumcheck("clsmap", kgen_array_sum, REAL(SUM(clsmap), 8), .TRUE.)
+              !$acc update device(clsmap)
           END IF 
           READ (UNIT = kgen_unit) kgen_istrue
           IF (kgen_istrue) THEN
               READ (UNIT = kgen_unit) kgen_array_sum
               READ (UNIT = kgen_unit) permute
               CALL kgen_array_sumcheck("permute", kgen_array_sum, REAL(SUM(permute), 8), .TRUE.)
+              !$acc update device(permute)
           END IF 
       END SUBROUTINE kr_externs_in_chem_mods
       

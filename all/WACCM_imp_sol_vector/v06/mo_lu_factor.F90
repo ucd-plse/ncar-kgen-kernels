@@ -34,7 +34,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,1) = 1._rkind_comp / lu(k,1)
 
@@ -162,7 +164,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len 
          lu(k,56) = 1._rkind_comp / lu(k,56)
          lu(k,57) = lu(k,57) * lu(k,56)
@@ -311,7 +315,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len 
          lu(k,103) = 1._rkind_comp / lu(k,103)
          lu(k,104) = lu(k,104) * lu(k,103)
@@ -462,7 +468,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,144) = 1._rkind_comp / lu(k,144)
          lu(k,145) = lu(k,145) * lu(k,144)
@@ -624,7 +632,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len 
          lu(k,180) = 1._rkind_comp / lu(k,180)
          lu(k,181) = lu(k,181) * lu(k,180)
@@ -782,7 +792,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,216) = 1._rkind_comp / lu(k,216)
          lu(k,217) = lu(k,217) * lu(k,216)
@@ -961,7 +973,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len 
          lu(k,255) = 1._rkind_comp / lu(k,255)
          lu(k,256) = lu(k,256) * lu(k,255)
@@ -1152,7 +1166,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,295) = 1._rkind_comp / lu(k,295)
          lu(k,296) = lu(k,296) * lu(k,295)
@@ -1356,7 +1372,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,338) = 1._rkind_comp / lu(k,338)
          lu(k,339) = lu(k,339) * lu(k,338)
@@ -1597,7 +1615,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,397) = 1._rkind_comp / lu(k,397)
          lu(k,398) = lu(k,398) * lu(k,397)
@@ -1859,7 +1879,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,448) = 1._rkind_comp / lu(k,448)
          lu(k,449) = lu(k,449) * lu(k,448)
@@ -2063,7 +2085,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,489) = 1._rkind_comp / lu(k,489)
          lu(k,490) = lu(k,490) * lu(k,489)
@@ -2358,7 +2382,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,552) = 1._rkind_comp / lu(k,552)
          lu(k,553) = lu(k,553) * lu(k,552)
@@ -2691,7 +2717,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,609) = 1._rkind_comp / lu(k,609)
          lu(k,610) = lu(k,610) * lu(k,609)
@@ -3095,7 +3123,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,657) = 1._rkind_comp / lu(k,657)
          lu(k,658) = lu(k,658) * lu(k,657)
@@ -3431,7 +3461,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,707) = 1._rkind_comp / lu(k,707)
          lu(k,708) = lu(k,708) * lu(k,707)
@@ -3918,7 +3950,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,799) = 1._rkind_comp / lu(k,799)
          lu(k,800) = lu(k,800) * lu(k,799)
@@ -4319,7 +4353,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,856) = 1._rkind_comp / lu(k,856)
          lu(k,857) = lu(k,857) * lu(k,856)
@@ -4956,7 +4992,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,971) = 1._rkind_comp / lu(k,971)
          lu(k,972) = lu(k,972) * lu(k,971)
@@ -5548,7 +5586,9 @@
 ! ... local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu)
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          lu(k,1223) = 1._rkind_comp / lu(k,1223)
          lu(k,1224) = lu(k,1224) * lu(k,1223)
@@ -5749,6 +5789,7 @@
 !-----------------------------------------------------------------------
       integer, intent(in) :: avec_len ! total spatial points in chunk;
       real(rkind_comp), intent(inout) :: lu(veclen,nzcnt)
+      !$acc declare present(lu)
 
       call lu_fac01( avec_len, lu )
       call lu_fac02( avec_len, lu )

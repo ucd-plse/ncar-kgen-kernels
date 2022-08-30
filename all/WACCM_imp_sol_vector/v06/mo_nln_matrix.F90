@@ -38,11 +38,13 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,mat)
 
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          mat(k,1223) = -(rxt(k,116)*y(k,2) + rxt(k,134)*y(k,3) + rxt(k,161)*y(k,22) &
                       + rxt(k,166)*y(k,23) + rxt(k,174)*y(k,24) + rxt(k,189)*y(k,9) &
@@ -295,11 +297,13 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,mat)
 
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          mat(k,971) = -(rxt(k,183)*y(k,8) + rxt(k,187)*y(k,2) + rxt(k,188)*y(k,24) &
                       + rxt(k,189)*y(k,1) + rxt(k,197)*y(k,11) + rxt(k,216)*y(k,30) &
@@ -574,11 +578,13 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,mat)
 
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          mat(k,1013) = -(rxt(k,193)*y(k,10) + rxt(k,197)*y(k,9) + rxt(k,198)*y(k,2) &
                       + rxt(k,199)*y(k,23) + rxt(k,200)*y(k,24) + rxt(k,266)*y(k,19) &
@@ -925,11 +931,13 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,mat)
 
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          mat(k,338) = -(rxt(k,171)*y(k,23) + rxt(k,176)*y(k,2) + rxt(k,206)*y(k,28))
          mat(k,1136) = -rxt(k,171)*y(k,25)
@@ -1193,11 +1201,13 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,mat)
 
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          mat(k,429) = -(rxt(k,461)*y(k,132))
          mat(k,439) = -rxt(k,461)*y(k,131)
@@ -1494,11 +1504,13 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,mat)
 
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len 
          mat(k,39) = -(rxt(k,388)*y(k,23))
          mat(k,1092) = -rxt(k,388)*y(k,99)
@@ -1777,11 +1789,13 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,mat)
 
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          mat(k,625) = -(rxt(k,322)*y(k,9) + rxt(k,323)*y(k,24) + rxt(k,324)*y(k,16))
          mat(k,955) = -rxt(k,322)*y(k,67)
@@ -1941,9 +1955,11 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(lmat,mat)
 !----------------------------------------------
 ! ... complete matrix entries implicit species
 !----------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len 
          mat(k, 1) = lmat(k, 1)
          mat(k, 2) = lmat(k, 2)
@@ -2709,6 +2725,7 @@
       real(rkind_comp), intent(in) :: rxt(veclen,rxntot)
       real(rkind_comp), intent(inout) :: mat(veclen,nzcnt)
       real(rkind_comp), intent(in) :: lmat(veclen,nzcnt) 
+      !$acc declare present(y,rxt,mat,lmat)
       call nlnmat01( avec_len, mat, y, rxt )
       call nlnmat02( avec_len, mat, y, rxt )
       call nlnmat03( avec_len, mat, y, rxt )

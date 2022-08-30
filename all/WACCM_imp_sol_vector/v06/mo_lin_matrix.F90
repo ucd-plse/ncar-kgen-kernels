@@ -39,8 +39,10 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,het_rates,mat)
 
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
 
          mat(k,1223) = -( rxt(k,3) + rxt(k,4) + het_rates(k,1) )
@@ -301,8 +303,10 @@
 ! ... local variables
 !----------------------------------------------
       integer :: k
+      !$acc declare present(y,rxt,het_rates,mat)
 
 
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len 
 
          mat(k,511) = -( rxt(k,27) + het_rates(k,34) )
@@ -637,6 +641,7 @@
       real(rkind_comp), intent(in) :: rxt(veclen,rxntot)
       real(rkind_comp), intent(in) :: het_rates(veclen,gas_pcnst)
       real(rkind_comp), intent(inout) :: mat(veclen,nzcnt)
+      !$acc declare present(y,rxt,het_rates,mat)
 
       call linmat01( avec_len, mat, y, rxt, het_rates )
       call linmat02( avec_len, mat, y, rxt, het_rates )

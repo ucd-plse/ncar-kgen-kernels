@@ -31,7 +31,8 @@ module ppgrid
 
    PARAMETER (pver      = 66)
 
-   integer,parameter ::  veclen=858    ! vector length
+   integer,parameter ::  veclen=DFACT*858    ! vector length
+   !integer,parameter ::  veclen=64    ! vector length
 
    integer,parameter,public :: nSystems = 858 ! total number of linear systems 
    

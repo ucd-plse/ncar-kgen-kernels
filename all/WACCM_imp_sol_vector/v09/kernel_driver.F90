@@ -38,6 +38,7 @@
         INTEGER :: ncol
         REAL(KIND=rkind_comp) :: delt
         REAL(KIND=rkind_io)   :: delt_io
+        integer :: nSys
 
         REAL :: avg_call_time, max_call_time
         integer myrank, mpisize, ierror
@@ -101,7 +102,7 @@
 
             
         END DO 
-
+        nSys=DFACT*nSystems
         kgen_avg_time = kgen_total_time / real(kgen_case_count,kind=kgen_dp)
 #ifdef _MPI
         call MPI_ALLREDUCE(kgen_avg_time, kgen_max_time, 1, MPI_REAL8, MPI_MAX, MPI_COMM_WORLD, ierror)
@@ -109,7 +110,7 @@
         kgen_max_time=kgen_avg_time         
 #endif
         
-        kgen_avg_rate = 1.0e6*real(mpisize,kind=kgen_dp)*real(nSystems,kind=kgen_dp)/kgen_max_time
+        kgen_avg_rate = 1.0e6*real(mpisize,kind=kgen_dp)*real(nSys,kind=kgen_dp)/kgen_max_time
         if (myrank == 0) then
            WRITE (*, *) ""
            WRITE (*, "(A)") "****************************************************"
@@ -124,7 +125,7 @@
            else
               WRITE (*,"(4X,A)") "kernel: WACCM_imp_sol_vector: FAILED verification"
            endif
-           WRITE (*, "(4X,A26,I3)") "number of linear systems: ",nSystems
+           WRITE (*, "(4X,A26,I5)") "number of linear systems: ",nSys
            WRITE (*, "(4X,A26,I3)") "number of mpi ranks: ",mpisize
            WRITE (*, *) ""
            WRITE (*, "(4X, A, E12.4)") "Average call time (usec): ", kgen_max_time

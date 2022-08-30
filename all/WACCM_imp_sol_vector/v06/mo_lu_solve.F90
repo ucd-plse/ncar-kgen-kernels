@@ -35,10 +35,11 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
-
+      !$acc declare present(lu,b)
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          b(k,17) = b(k,17) - lu(k,17) * b(k,16)
          b(k,19) = b(k,19) - lu(k,20) * b(k,18)
@@ -264,9 +265,12 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu,b)
+
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          b(k,119) = b(k,119) - lu(k,296) * b(k,83)
          b(k,122) = b(k,122) - lu(k,297) * b(k,83)
@@ -485,9 +489,12 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu,b)
+
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          b(k,115) = b(k,115) - lu(k,559) * b(k,111)
          b(k,122) = b(k,122) - lu(k,560) * b(k,111)
@@ -707,9 +714,12 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu,b)
+
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          b(k,135) = b(k,135) - lu(k,871) * b(k,131)
          b(k,136) = b(k,136) - lu(k,872) * b(k,131)
@@ -841,9 +851,12 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu,b)
+
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
 !-----------------------------------------------------------------------
 ! ... Solve U * x = y
@@ -1069,9 +1082,12 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu,b)
+
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          b(k,140) = b(k,140) * lu(k,1245)
          b(k,139) = b(k,139) - lu(k,1244) * b(k,140)
@@ -1306,9 +1322,12 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu,b)
+
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          b(k,134) = b(k,134) * lu(k,971)
          b(k,133) = b(k,133) - lu(k,970) * b(k,134)
@@ -1526,9 +1545,12 @@
 ! ... Local variables
 !-----------------------------------------------------------------------
       integer :: k
+      !$acc declare present(lu,b)
+
 !-----------------------------------------------------------------------
 ! ... solve L * y = b
 !-----------------------------------------------------------------------
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          b(k,101) = b(k,101) * lu(k,448)
          b(k,48) = b(k,48) - lu(k,447) * b(k,101)
@@ -1665,6 +1687,7 @@
       integer, intent(in) :: avec_len ! total spatial points in chunk; ncol*pver
       real(rkind_comp), intent(in) :: lu(veclen,nzcnt)
       real(rkind_comp), intent(inout) :: b(veclen,clscnt4)
+      !!$acc declare present(lu,b)
       call lu_slv01( avec_len, lu, b )
       call lu_slv02( avec_len, lu, b )
       call lu_slv03( avec_len, lu, b )

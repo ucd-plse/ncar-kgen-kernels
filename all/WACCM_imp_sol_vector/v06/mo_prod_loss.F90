@@ -57,11 +57,12 @@
 ! ... local variables
 !--------------------------------------------------------------------
       integer :: k
+      !!$acc declare present(y,rxt,het_rates,prod,loss)
 
 !--------------------------------------------------------------------
 ! ... loss and production for Implicit method
 !--------------------------------------------------------------------
-
+      !$acc parallel loop gang vector default(present)
       do k = 1,avec_len
          loss(k,139) = (rxt(k,116)* y(k,2) +rxt(k,134)* y(k,3) +rxt(k,189)* y(k,9) &
                   +rxt(k,192)* y(k,10) +rxt(k,161)* y(k,22) +rxt(k,166)* y(k,23) &

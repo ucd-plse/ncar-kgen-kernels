@@ -149,12 +149,24 @@
          end do
       end if
       !print *,'imp_sol: chnkpnts: ',chnkpnts
+      !print *,'size(reaction_rates_full): ',size(reaction_rates_full,dim=1),size(reaction_rates_full,dim=2) 
+      !print *,'size(base_sol_full): ',size(base_sol_full,dim=1),size(base_sol_full,dim=2) 
+      !print *,'size(het_rates_full): ',size(het_rates_full,dim=1),size(het_rates_full,dim=2) 
+      !print *,'size(extfrc_full): ',size(extfrc_full,dim=1),size(extfrc_full,dim=2) 
+      !
+      !print *,'base_sol_full(1,1:10): ',base_sol_full(1,1:10)
+      !print *,'base_sol_full(859,1:10): ',base_sol_full(859,1:10)
+
+      !print *,'extfrc_full(1,1:10): ',extfrc_full(1,1:10)
+      !print *,'extfrc_full(859,1:10): ',extfrc_full(859,1:10)
+
+      !stop 'after chnkpnts'
       ofl = 1
 chnkpnts_loop : &
       do 
          ofu = min( chnkpnts,ofl + veclen - 1 )
          avec_len = (ofu - ofl) + 1
-!         write(*,*) 'avec_len = ',avec_len, ofl, ofu
+         !write(*,*) 'avec_len = ',avec_len, ofl, ofu
 
 !         sys_jac_blk = 0._rkind_comp
 !         lin_jac_blk = 0._rkind_comp
@@ -344,6 +356,7 @@ iter_loop : do nr_iter = 1,itermax
                   !   converged(cndx) = all( spc_conv_blk(1:avec_len,cndx) )
                   !enddo
                   !convergence = all( converged(:) )
+                  !print *,'count (spc_conv_blk): ',count(spc_conv_blk .eq. .true.)
 
                   !$acc parallel loop gang vector default(present)
                   do i = 1, avec_len

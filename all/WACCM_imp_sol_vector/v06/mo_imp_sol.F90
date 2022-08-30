@@ -36,6 +36,7 @@
       real(rkind_io)   :: epsilon_io(clscnt4)
       logical :: factor(itermax)
       logical :: first_time = .true.
+      !$acc declare create(epsilon)
 
       PRIVATE
       PUBLIC imp_sol
@@ -128,19 +129,26 @@
       real(rkind_comp) :: reaction_rates_blk(veclen,max(1,rxntot))
       real(rkind_comp) :: extfrc_blk(veclen,max(1,extcnt))
       real(rkind_comp) :: het_rates_blk(veclen,max(1,gas_pcnst))
-      real(rkind_comp) :: base_sol_blk(veclen,gas_pcnst)
+      real(rkind_comp) :: base_sol_blk(veclen,max(1,gas_pcnst))
+      real(rkind_comp) :: maxtmp,wrktmp
 
 !-----------------------------------------------------------------------
 ! ... class independent forcing
 !-----------------------------------------------------------------------
+      !$acc data  create(ind_prd_blk,reaction_rates_blk,het_rates_blk,iter_invariant_blk, &
+      !$acc           base_sol_blk,lin_jac_blk,solution_blk,forcing_blk,cls_conv_blk, &
+      !$acc           prod_blk,loss_blk,sys_jac_blk,spc_conv_blk,sbase_sol_blk,ind_prd_full)
       if( cls_rxt_cnt(1,4) > 0 .or. extcnt > 0 ) then
          call indprd( 4, ind_prd_full, base_sol_full, extfrc_full, reaction_rates_full, chnkpnts )
       else
+         !$acc parallel loop gang vector collapse(2) default(present)
          do m = 1,clscnt4
-            ind_prd_full(:,m) = 0._rkind_comp
+           do i=1,chnkpnts
+             ind_prd_full(i,m) = 0._rkind_comp
+           enddo
          end do
       end if
-
+      !print *,'imp_sol: chnkpnts: ',chnkpnts
       ofl = 1
 chnkpnts_loop : &
       do 
@@ -165,14 +173,38 @@ chnkpnts_loop : &
 !         het_rates_blk = 0._rkind_comp
 !         base_sol_blk = 0._rkind_comp
 
-         reaction_rates_blk(1:avec_len,:) = reaction_rates_full(ofl:ofu,:)
-         extfrc_blk(1:avec_len,:) = extfrc_full(ofl:ofu,:)
-         het_rates_blk(1:avec_len,:) = het_rates_full(ofl:ofu,:)
-         ind_prd_blk(1:avec_len,:) = ind_prd_full(ofl:ofu,:)
-         base_sol_blk(1:avec_len,:) = base_sol_full(ofl:ofu,:)
 
+         !reaction_rates_blk(1:avec_len,:) = reaction_rates_full(ofl:ofu,:)
+         !$acc parallel loop gang vector collapse(2) default(present)
+         do m=1,rxntot
+           do i=1,avec_len
+             reaction_rates_blk(i,m) = reaction_rates_full(ofl+(i-1),m)
+           enddo
+         enddo
+
+         !extfrc_blk(1:avec_len,:) = extfrc_full(ofl:ofu,:)
+         !$acc parallel loop gang vector collapse(2) default(present)
+         do m=1,extcnt
+           do i=1,avec_len
+             extfrc_blk(i,m) = extfrc_full(ofl+(i-1),m)
+           enddo
+         enddo
+
+         !ind_prd_blk(1:avec_len,:) = ind_prd_full(ofl:ofu,:)
+         !$acc parallel loop gang vector collapse(2) default(present)
+         do m = 1,clscnt4
+           do i=1,avec_len
+             ind_prd_blk(i,m) = ind_prd_full(ofl+(i-1),m)
+           enddo
+         enddo
+
+         !het_rates_blk(1:avec_len,:) = het_rates_full(ofl:ofu,:)
+         !base_sol_blk(1:avec_len,:) = base_sol_full(ofl:ofu,:)
+         !$acc parallel loop gang vector collapse(2) default(present)
          do m = 1,gas_pcnst
            do i = 1, avec_len
+             het_rates_blk(i,m) = het_rates_full(ofl+(i-1),m)
+             base_sol_blk(i,m)  = base_sol_full(ofl+(i-1),m)
              sbase_sol_blk(i,m) = base_sol_blk(i,m)
            end do
          end do
@@ -190,23 +222,28 @@ time_step_loop : &
 !-----------------------------------------------------------------------
 ! ... transfer from base to class array
 !-----------------------------------------------------------------------
+            !$acc parallel default(present)
             do cndx = 1,clscnt4
                bndx = clsmap(cndx,4)
                pndx = permute(cndx,4)
+               !$acc loop gang vector
                do i = 1, avec_len
                  solution_blk(i,pndx) = base_sol_blk(i,bndx)
                end do
             end do
+            !$acc end parallel
 !-----------------------------------------------------------------------
 ! ... set the iteration invariant part of the function f(y)
 !-----------------------------------------------------------------------
             if( cls_rxt_cnt(1,4) > 0 .or. extcnt > 0 ) then
+               !$acc parallel loop gang vector collapse(2) default(present)
                do m = 1,clscnt4
                  do i = 1, avec_len
                    iter_invariant_blk(i,m) = dti * solution_blk(i,m) + ind_prd_blk(i,m)
                  enddo
                end do
             else
+               !$acc parallel loop gang vector collapse(2) default(present)
                do m = 1,clscnt4
                  do i = 1, avec_len
                    iter_invariant_blk(i,m) = dti * solution_blk(i,m)
@@ -222,6 +259,7 @@ time_step_loop : &
 !=======================================================================
 ! the newton-raphson iteration for f(y) = 0
 !=======================================================================
+            !$acc parallel loop gang vector default(present)
             do i = 1, avec_len
               cls_conv_blk(i) = .false.
             end do
@@ -241,6 +279,7 @@ iter_loop : do nr_iter = 1,itermax
 !-----------------------------------------------------------------------
                call imp_prod_loss( avec_len, prod_blk, loss_blk, base_sol_blk, &
                                    reaction_rates_blk, het_rates_blk )
+               !$acc parallel loop gang vector collapse(2) default(present)
                do m = 1,clscnt4
                  do i = 1, avec_len
                    forcing_blk(i,m) = solution_blk(i,m)*dti &
@@ -252,6 +291,7 @@ iter_loop : do nr_iter = 1,itermax
 !-----------------------------------------------------------------------
                call lu_slv( avec_len, sys_jac_blk, forcing_blk )
 
+               !$acc parallel loop gang vector collapse(2) default(present)
                do m = 1,clscnt4
                  do i = 1, avec_len
                    if( .not. cls_conv_blk(i) ) then
@@ -269,19 +309,21 @@ iter_loop : do nr_iter = 1,itermax
 !-----------------------------------------------------------------------
 ! ... check for convergence
 !-----------------------------------------------------------------------
+                  convergence = .true.
+                  !$acc parallel default(present)
+                  !$acc loop gang
                   do cndx = 1,clscnt4
                      pndx = permute(cndx,4)
                      bndx = clsmap(cndx,4)
+                     maxtmp = 0.0
+                     !$acc loop vector reduction(max:maxtmp)
                      do i = 1, avec_len
                        if ( abs( solution_blk(i,pndx) ) > sol_min ) then
-                          wrk_blk(i) = abs( forcing_blk(i,pndx)/solution_blk(i,pndx) )
+                          wrktmp = abs( forcing_blk(i,pndx)/solution_blk(i,pndx) )
                        else
-                        wrk_blk(i) = 0._rkind_comp
+                          wrktmp = 0._rkind_comp
                        endif
-                     enddo
-
-                     max_delta(cndx) = maxval( wrk_blk(1:avec_len) )
-                     do i = 1, avec_len
+                       maxtmp = max(maxtmp,wrktmp)
                        solution_blk(i,pndx) = max( 0._rkind_comp,solution_blk(i,pndx) )
                        base_sol_blk(i,bndx) = solution_blk(i,pndx)
                        if ( abs( forcing_blk(i,pndx) ) > small ) then
@@ -289,26 +331,46 @@ iter_loop : do nr_iter = 1,itermax
                        else
                          spc_conv_blk(i,cndx) = .true.
                        endif
+                       if (.not.spc_conv_blk(i,cndx)) then 
+                          convergence = .false.
+                       endif
                      enddo
-                     converged(cndx) = all( spc_conv_blk(1:avec_len,cndx) )
+                     max_delta(cndx) = maxtmp
                   end do
+                  !$acc end parallel
 
-                  convergence = all( converged(:) )
+                  ! CPU resident calculation 
+                  !do cndx = 1,clscnt4
+                  !   converged(cndx) = all( spc_conv_blk(1:avec_len,cndx) )
+                  !enddo
+                  !convergence = all( converged(:) )
+
+                  !$acc parallel loop gang vector default(present)
+                  do i = 1, avec_len
+                     if( .not. cls_conv_blk(i) ) then
+                         cls_conv_blk(i) = all( spc_conv_blk(i,:) )
+                     endif
+                  end do
                   if( convergence ) then
-                     base_sol_full(ofl:ofu,:) = base_sol_blk(1:avec_len,:)
-                     ind_prd_full(ofl:ofu,:) = ind_prd_blk(1:avec_len,:)
+                     !$acc parallel loop gang vector collapse(2) default(present)
+                     do m = 1,gas_pcnst
+                       do i=1,avec_len
+                         base_sol_full(ofl+(i-1),m) = base_sol_blk(i,m)
+                       enddo
+                     enddo
+                     !$acc parallel loop gang vector collapse(2) default(present)
+                     do m = 1,clscnt4
+                       do i=1,avec_len
+                         ind_prd_full(ofl+(i-1),m)  = ind_prd_blk(i,m)
+                       enddo
+                     enddo
                      exit iter_loop
                   end if
-                  do m = 1, avec_len
-                     if( .not. cls_conv_blk(m) ) then
-                        cls_conv_blk(m) = all( spc_conv_blk(m,:) )
-                     end if
-                  end do
-! SAM               else conv_chk
                 else !conv_chk
 !-----------------------------------------------------------------------
 ! ... limit iterate
 !-----------------------------------------------------------------------
+                  !$acc parallel loop gang vector collapse(2) default(present)
                   do m = 1,clscnt4
                     do i = 1, avec_len
                       solution_blk(i,m) = max( 0._rkind_comp,solution_blk(i,m) )
@@ -317,14 +379,16 @@ iter_loop : do nr_iter = 1,itermax
 !-----------------------------------------------------------------------
 ! ... transfer latest solution back to base array
 !-----------------------------------------------------------------------
+                  !$acc parallel default(present)
                   do cndx = 1,clscnt4
                      pndx = permute(cndx,4)
                      bndx = clsmap(cndx,4)
+                    !$acc loop gang vector
                      do i = 1, avec_len
                        base_sol_blk(i,bndx) = solution_blk(i,pndx)
                      end do
                   end do
-! SAM               end if conv_chk
+                  !$acc end parallel
                 end if !conv_chk
             end do iter_loop
 !!!            write(*,*)'** newton-raphson steps: ',nr_iter
@@ -349,8 +413,11 @@ iter_loop : do nr_iter = 1,itermax
                   else
                      dt = .1_rkind_comp * dt
                   end if
+                  !$acc parallel loop gang vector collapse(2) default(present)
                   do m = 1,gas_pcnst
-                     base_sol_blk(:,m) = sbase_sol_blk(:,m)
+                    do i=1,avec_len
+                      base_sol_blk(i,m) = sbase_sol_blk(i,m)
+                    enddo
                   end do
                   cycle time_step_loop
 ! SAM               else step_reduction
@@ -362,9 +429,7 @@ iter_loop : do nr_iter = 1,itermax
 !                        write(*,'(1x,a8,1x,1pe10.3)') solsym(clsmap(m,4)), max_delta(m)
 !                     end if
 !                  end do
-! SM               end if step_reduction
                   end if !step_reduction
-! SAM            end if non_conv
             end if !non_conv
 !-----------------------------------------------------------------------
 ! ... check for interval done
@@ -372,13 +437,25 @@ iter_loop : do nr_iter = 1,itermax
             interval_done = interval_done + dt
 ! SAM time_step_done : &
             if( abs( delt - interval_done ) <= .0001_rkind_comp ) then
-!JMD               if( fail_cnt > 0 ) then
-!JMD                  write(*,*) 'imp_sol : @ (lchnk,lev) = '!,lchnk,lev,' failed ',fail_cnt,' times'
-!JMD               end if
-               base_sol_full(ofl:ofu,:) = base_sol_blk(1:avec_len,:)
-               ind_prd_full(ofl:ofu,:) = ind_prd_blk(1:avec_len,:)
+               !print *,'imp_sol: before copy back to base_sol_full'
+
+               !$acc parallel loop gang vector collapse(2) default(present)
+               do m = 1,gas_pcnst
+                 do i=1,avec_len
+                   base_sol_full(ofl+(i-1),m) = base_sol_blk(i,m)
+                 enddo
+               enddo
+               !$acc parallel loop gang vector collapse(2) default(present)
+               do m = 1,clscnt4
+                 do i=1,avec_len
+                   ind_prd_full(ofl+(i-1),m)  = ind_prd_blk(i,m)
+                 enddo
+               enddo
+               !base_sol_full(ofl:ofu,:) = base_sol_blk(1:avec_len,:)
+               !ind_prd_full(ofl:ofu,:) = ind_prd_blk(1:avec_len,:)
+
+
                exit time_step_loop
-! SAM            else time_step_done
             else !time_step_done
 !-----------------------------------------------------------------------
 ! ... transfer latest solution back to base array
@@ -386,6 +463,7 @@ iter_loop : do nr_iter = 1,itermax
                if( convergence ) then
                   stp_con_cnt = stp_con_cnt + 1
                end if
+               !$acc parallel loop gang vector collapse(2) default(present)
                do m = 1,gas_pcnst
                  do i = 1, avec_len
                    sbase_sol_blk(i,m) = base_sol_blk(i,m)
@@ -396,7 +474,6 @@ iter_loop : do nr_iter = 1,itermax
                   stp_con_cnt = 0
                end if
                dt = min( dt,delt-interval_done )
-! SAM            end if time_step_done
                end if !time_step_done
          end do time_step_loop
          ofl = ofu + 1
@@ -404,6 +481,7 @@ iter_loop : do nr_iter = 1,itermax
             exit chnkpnts_loop
          end if
       end do chnkpnts_loop
+      !$acc end data
 
       end subroutine imp_sol
 
@@ -424,6 +502,7 @@ iter_loop : do nr_iter = 1,itermax
           IF (kgen_istrue) THEN
               READ (UNIT = kgen_unit) factor
           END IF 
+          !$acc update device(epsilon)
       END SUBROUTINE kr_externs_in_mo_imp_sol
       
       !read state subroutine for kr_externs_out_mo_imp_sol

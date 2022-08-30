@@ -20,24 +20,27 @@
         INTEGER :: kgen_mpi_rank
         CHARACTER(LEN=16) :: kgen_mpi_rank_conv
         INTEGER, PARAMETER, DIMENSION(2) :: kgen_mpi_rank_at = (/ 0, 60 /)
+        INTEGER :: kgen_case_count
         INTEGER :: kgen_ierr, kgen_unit, kgen_counter, kgen_repeat_counter
         CHARACTER(LEN=16) :: kgen_counter_conv
         INTEGER, PARAMETER, DIMENSION(2) :: kgen_counter_at = (/ 1, 48 /)
         CHARACTER(LEN=1024) :: kgen_filepath
-        REAL(KIND=kgen_dp) :: kgen_total_time
+        REAL(KIND=kgen_dp) :: kgen_total_time,kgen_avg_time,kgen_max_time,kgen_avg_rate
         REAL(KIND=8) :: kgen_array_sum
         
         INTEGER :: lchnk
         INTEGER :: ncol
         REAL(KIND=r8) :: delt
+        integer :: nsys
 
-        integer rank, size, ierror
+        integer rank, mpisize, ierror
 
         call MPI_INIT(ierror)
-        call MPI_COMM_SIZE(MPI_COMM_WORLD, size, ierror)
+        call MPI_COMM_SIZE(MPI_COMM_WORLD, mpisize, ierror)
         call MPI_COMM_RANK(MPI_COMM_WORLD, rank, ierror)
 
         kgen_total_time = 0.0_kgen_dp
+        kgen_case_count = 0
         
         DO kgen_repeat_counter = 0, 3
             
@@ -56,7 +59,7 @@
 !            WRITE (*, *) ""
 !            WRITE (*, *) "***************** Verification against '" // trim(adjustl(kgen_filepath)) // "' *****************"
             
-            
+            kgen_case_count = kgen_case_count + 1 
             !driver read in arguments
             READ (UNIT = kgen_unit) lchnk
             READ (UNIT = kgen_unit) ncol
@@ -73,8 +76,13 @@
             !callsite part
             CALL gas_phase_chemdr(kgen_unit, kgen_total_time, lchnk, ncol, delt)
             CLOSE (UNIT=kgen_unit)
+            kgen_avg_time = kgen_total_time / kgen_case_count
             
+            call MPI_ALLREDUCE(kgen_avg_time,kgen_max_time,1,MPI_REAL8,MPI_MAX,MPI_COMM_WORLD,ierror)
+   
         END DO 
+        ! nSys = 1056*mpisize
+        nSys = 858
         
 !        WRITE (*, *) ""
 !        WRITE (*, *) "******************************************************************************"
@@ -82,7 +90,12 @@
 !        WRITE (*, *) "imp_sol summary: Average call time of all calls (usec): ", kgen_total_time / 4
 !        WRITE (*, *) "******************************************************************************"
 !        WRITE (*, *) rank,"/",size,kgen_total_time / 4
-        WRITE (*, *) kgen_total_time / 4
+        kgen_avg_rate = 1.0e6*real(mpisize,kind=kgen_dp)*real(nSys,kind=kgen_dp)/kgen_max_time
+        if (rank == 0) then 
+           WRITE (*, "(4X, A, F12.2)") "Average System solves per sec: ", kgen_avg_rate
+           WRITE (*, "(4X, A, E12.4)") "Average call time (usec): ", kgen_max_time
+        endif
+
         call MPI_FINALIZE(ierror)
 
     END PROGRAM 
