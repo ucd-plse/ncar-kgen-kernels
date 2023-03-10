@@ -4,9 +4,9 @@
 pcols ?= 16
 
 FC = identityTranslator
-FFLAGS += -rose:plugin_lib ${PROSE_PLUGIN_PATH}/ProsePlugin.so -rose:plugin_action prose-generate-graph -rose:plugin_arg_prose-generate-graph ${PROSE_EXPERIMENT_DIR}
-FFLAGS += -rose:skip_syntax_check
-FFLAGS += -rose:skipfinalCompileStep
+FC_FLAGS = -rose:plugin_lib ${PROSE_PLUGIN_PATH}/ProsePlugin.so -rose:plugin_action prose-generate-graph -rose:plugin_arg_prose-generate-graph ${PROSE_EXPERIMENT_DIR}
+FC_FLAGS += -rose:skip_syntax_check
+FC_FLAGS += -rose:skipfinalCompileStep
 
 
 #FC_0 := /glade/u/apps/opt/intel/2017u1/compilers_and_libraries/linux/bin/intel64/ifort
@@ -53,3 +53,4 @@ tprof_mod.o: tprof_mod.f90
 
 clean:
 	rm -f kernel.exe *.mod ${ALL_OBJS} *.opt* *.L rose_* *.rmod *_postprocessed*
+	rm -r prose_*
