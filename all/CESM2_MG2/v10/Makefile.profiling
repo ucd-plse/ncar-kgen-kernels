@@ -2,7 +2,9 @@
 #
 #
 include ./Macros
+
 pcols ?= 16
+FC_FLAGS += -prof-gen=srcpos -prof-dir ${PROSE_EXPERIMENT_DIR}/prose_workspace/__profiling
 
 #FC_0 := /glade/u/apps/opt/intel/2017u1/compilers_and_libraries/linux/bin/intel64/ifort
 #FC_FLAGS_SET_0 := -qno-opt-dynamic-align -convert big_endian -assume byterecl -ftz -traceback -assume realloc_lhs -fp-model source -qopt-report -xCORE_AVX2 -no-fma -O2 -debug minimal -free

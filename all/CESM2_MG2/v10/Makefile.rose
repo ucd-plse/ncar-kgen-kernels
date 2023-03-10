@@ -4,6 +4,12 @@
 include ./Macros
 pcols ?= 16
 
+FC = identityTranslator
+FFLAGS += -rose:plugin_lib ${PROSE_PLUGIN_PATH}/ProsePlugin.so -rose:plugin_action prose-generate-graph -rose:plugin_arg_prose-generate-graph ${PROSE_EXPERIMENT_DIR}
+FFLAGS += -rose:skip_syntax_check
+FFLAGS += -rose:skipfinalCompileStep
+
+
 #FC_0 := /glade/u/apps/opt/intel/2017u1/compilers_and_libraries/linux/bin/intel64/ifort
 #FC_FLAGS_SET_0 := -qno-opt-dynamic-align -convert big_endian -assume byterecl -ftz -traceback -assume realloc_lhs -fp-model source -qopt-report -xCORE_AVX2 -no-fma -O2 -debug minimal -free
 

@@ -2,6 +2,7 @@
 #
 #
 include ./Macros
+FC_FLAGS += -qopt-report=5
 pcols ?= 16
 
 #FC_0 := /glade/u/apps/opt/intel/2017u1/compilers_and_libraries/linux/bin/intel64/ifort
