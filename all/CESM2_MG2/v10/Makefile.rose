@@ -1,7 +1,6 @@
 # Makefile for KGEN-generated kernel
 #
 #
-include ./Macros
 pcols ?= 16
 
 FC = identityTranslator
@@ -53,4 +52,4 @@ tprof_mod.o: tprof_mod.f90
 	${FC} ${FC_FLAGS} -c -o $@ $<
 
 clean:
-	rm -f kernel.exe *.mod ${ALL_OBJS} *.opt* *.L
+	rm -f kernel.exe *.mod ${ALL_OBJS} *.opt* *.L rose_* *.rmod *_postprocessed*
