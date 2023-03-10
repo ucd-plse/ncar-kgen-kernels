@@ -13,7 +13,7 @@ ALL_OBJS := micro_mg_cam.o micro_mg2_0.o micro_mg_utils.o wv_sat_methods.o shr_s
 
 .PHONY: kernel_driver.o 
 
-run: build
+run: clean build
 
 build: ${ALL_OBJS}
 	${FC} ${LD_FLAGS} -o kernel.exe $^  
