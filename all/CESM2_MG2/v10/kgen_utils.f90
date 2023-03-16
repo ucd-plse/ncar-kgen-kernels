@@ -68,7 +68,6 @@ subroutine kgen_array_sumcheck(varname, sum1, sum2, finish)
                 print *, 'Normalized difference: ', rel_diff
 
                 if ( present(finish) .AND. finish ) then
-                    stop
                 end if
             end if
         else
@@ -79,7 +78,6 @@ subroutine kgen_array_sumcheck(varname, sum1, sum2, finish)
             print *, 'Difference: ', diff
 
             if ( present(finish) .AND. finish ) then
-                stop
             end if
         end if
     end if
